@@ -1,0 +1,128 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  html,body{margin:0;padding:0;background:#fff;}
+  svg{display:block;font-family:Arial,Helvetica,sans-serif;}
+</style></head>
+<body>
+<svg width="880" height="700" viewBox="0 0 880 700" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arw" markerWidth="10" markerHeight="10" refX="9.4" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+    <marker id="arwB" markerWidth="10" markerHeight="10" refX="9.4" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+  </defs>
+
+  <text x="16"  y="20" font-size="13" fill="#666">Entity / store</text>
+  <text x="296" y="20" font-size="13" fill="#666">Process</text>
+  <text x="656" y="20" font-size="13" fill="#666">Data store</text>
+
+  <!-- ============ LEFT ============ -->
+  <rect x="22" y="36" width="156" height="54" fill="#fff" stroke="#222" stroke-width="1.8"/>
+  <text x="100" y="60" font-size="15" text-anchor="middle" font-weight="bold">TEACHER</text>
+  <text x="100" y="79" font-size="11.5" text-anchor="middle" fill="#444">enters marks</text>
+  <line x1="178" y1="63" x2="292" y2="63" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+  <text x="235" y="55" font-size="11.5" text-anchor="middle" fill="#444">marks</text>
+
+  <path d="M22 100 L178 100" stroke="#222" stroke-width="1.8"/>
+  <path d="M22 152 L178 152" stroke="#222" stroke-width="1.8"/>
+  <text x="100" y="132" font-size="14" text-anchor="middle" font-weight="bold">D1 students</text>
+  <line x1="178" y1="126" x2="292" y2="126" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+  <text x="235" y="118" font-size="11.5" text-anchor="middle" fill="#444">FK check</text>
+
+  <path d="M22 164 L178 164" stroke="#222" stroke-width="1.8"/>
+  <path d="M22 216 L178 216" stroke="#222" stroke-width="1.8"/>
+  <text x="100" y="196" font-size="14" text-anchor="middle" font-weight="bold">D2 exams</text>
+  <line x1="178" y1="190" x2="292" y2="190" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+  <text x="235" y="182" font-size="11.5" text-anchor="middle" fill="#444">max_marks</text>
+
+  <!-- ============ D3 ============ -->
+  <path d="M652 36 L858 36"  stroke="#222" stroke-width="1.8"/>
+  <path d="M652 216 L858 216" stroke="#222" stroke-width="1.8"/>
+  <text x="755" y="118" font-size="14.5" text-anchor="middle" font-weight="bold">D3  results</text>
+  <text x="755" y="138" font-size="11.5" text-anchor="middle" fill="#555">marks, % , grade, status</text>
+
+  <!-- ============ P1 ============ -->
+  <rect x="294" y="36" width="308" height="118" rx="11" fill="#f2f5ff" stroke="#1e40af" stroke-width="1.8"/>
+  <text x="448" y="64"  font-size="15" text-anchor="middle" font-weight="bold">P1  sp_generate_result</text>
+  <text x="448" y="86"  font-size="12.5" text-anchor="middle" fill="#333">sp_generate_exam_results</text>
+  <text x="448" y="105" font-size="11.5" text-anchor="middle" fill="#555">batch entry, cursor, skips duplicates</text>
+  <text x="448" y="130" font-size="11.5" text-anchor="middle" fill="#666">OUT: result id and message</text>
+
+  <line x1="602" y1="72" x2="648" y2="72" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+  <text x="625" y="64" font-size="11" text-anchor="middle" fill="#444">INSERT</text>
+
+  <line x1="448" y1="154" x2="448" y2="166" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+
+  <!-- ============ P2 ============ -->
+  <rect x="294" y="168" width="308" height="76" rx="11" fill="#fff4ec" stroke="#b45309" stroke-width="1.8"/>
+  <text x="448" y="194" font-size="15" text-anchor="middle" font-weight="bold">P2  trg_results_bi</text>
+  <text x="448" y="214" font-size="12.5" text-anchor="middle" fill="#333">percentage &#183; grade &#183; PASS/FAIL</text>
+  <text x="448" y="233" font-size="11.5" text-anchor="middle" fill="#8a5a12">refuses marks above the maximum</text>
+
+  <line x1="602" y1="206" x2="648" y2="206" stroke="#b45309" stroke-width="1.5" stroke-dasharray="6 3" marker-end="url(#arwB)"/>
+  <text x="625" y="198" font-size="11" text-anchor="middle" fill="#b45309">writes back</text>
+
+  <line x1="448" y1="244" x2="448" y2="256" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+
+  <!-- ============ P3 ============ -->
+  <rect x="294" y="258" width="308" height="66" rx="11" fill="#fff4ec" stroke="#b45309" stroke-width="1.8"/>
+  <text x="448" y="284" font-size="14.5" text-anchor="middle" font-weight="bold">P3  audit triggers</text>
+  <text x="448" y="305" font-size="12" text-anchor="middle" fill="#333">trg_results_ai / au / ad</text>
+
+  <line x1="602" y1="290" x2="648" y2="290" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+  <path d="M652 258 L858 258" stroke="#222" stroke-width="1.8"/>
+  <path d="M652 324 L858 324" stroke="#222" stroke-width="1.8"/>
+  <text x="755" y="296" font-size="13.5" text-anchor="middle" font-weight="bold">D4 result_audit</text>
+
+  <line x1="448" y1="324" x2="448" y2="336" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+
+  <!-- ============ P4 ============ -->
+  <rect x="294" y="338" width="308" height="66" rx="11" fill="#f2fff6" stroke="#15803d" stroke-width="1.8"/>
+  <text x="448" y="364" font-size="15" text-anchor="middle" font-weight="bold">P4  v_result_summary</text>
+  <text x="448" y="385" font-size="12" text-anchor="middle" fill="#333">RANK() OVER (ORDER BY percentage DESC)</text>
+
+  <line x1="448" y1="404" x2="448" y2="416" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+
+  <!-- ============ P5 ============ -->
+  <rect x="294" y="418" width="308" height="60" rx="11" fill="#f2f5ff" stroke="#1e40af" stroke-width="1.8"/>
+  <text x="448" y="444" font-size="14.5" text-anchor="middle" font-weight="bold">P5  sp_merit_list &#183; fn_get_rank</text>
+  <text x="448" y="465" font-size="11.5" text-anchor="middle" fill="#555">merit order and one student's position</text>
+
+  <line x1="448" y1="478" x2="448" y2="490" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+
+  <!-- ============ P6 ============ -->
+  <rect x="294" y="492" width="308" height="66" rx="11" fill="#f2f5ff" stroke="#1e40af" stroke-width="1.8"/>
+  <text x="448" y="518" font-size="13.5" text-anchor="middle" font-weight="bold">P6  sp_class_statistics &#183; v_student_totals</text>
+  <text x="448" y="539" font-size="11.5" text-anchor="middle" fill="#555">mean &#183; median &#183; SD &#183; pass rate &#183; GPA</text>
+
+  <line x1="448" y1="558" x2="448" y2="570" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+
+  <!-- ============ OUTPUT ============ -->
+  <rect x="238" y="572" width="420" height="54" fill="#fff" stroke="#222" stroke-width="1.8"/>
+  <text x="448" y="595" font-size="14" text-anchor="middle" font-weight="bold">Teacher / Student sees</text>
+  <text x="448" y="614" font-size="11.5" text-anchor="middle" fill="#444">dashboard &#183; merit list &#183; analytics &#183; audit log &#183; mark sheet</text>
+
+  <!-- ============ KEY ============ -->
+  <line x1="16" y1="648" x2="864" y2="648" stroke="#dcdcdc" stroke-width="1.2"/>
+  <text x="18" y="676" font-size="12.5" font-weight="bold" fill="#333">Key</text>
+
+  <rect x="66" y="663" width="36" height="19" fill="#fff" stroke="#222" stroke-width="1.5"/>
+  <text x="110" y="677" font-size="12" fill="#333">entity</text>
+
+  <rect x="178" y="663" width="36" height="19" rx="7" fill="#f2f5ff" stroke="#1e40af" stroke-width="1.5"/>
+  <text x="222" y="677" font-size="12" fill="#333">process</text>
+
+  <path d="M306 667 L344 667" stroke="#222" stroke-width="1.7"/>
+  <path d="M306 679 L344 679" stroke="#222" stroke-width="1.7"/>
+  <text x="352" y="677" font-size="12" fill="#333">data store</text>
+
+  <line x1="452" y1="673" x2="498" y2="673" stroke="#222" stroke-width="1.5" marker-end="url(#arw)"/>
+  <text x="506" y="677" font-size="12" fill="#333">data flow</text>
+
+  <line x1="612" y1="673" x2="658" y2="673" stroke="#b45309" stroke-width="1.5" stroke-dasharray="6 3" marker-end="url(#arwB)"/>
+  <text x="666" y="677" font-size="12" fill="#333">written back by trigger</text>
+</svg>
+</body></html>

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block body %}
+
+<h2 style="margin-top:4px">Overall ranking (whole course)</h2>
+<div class="card">
+  <table>
+    <thead><tr>
+      <th class="num">Rank</th><th>Roll no</th><th>Name</th><th class="num">Exams</th>
+      <th class="num">Total</th><th class="num">Overall %</th><th class="num">GPA</th>
+      <th class="num">Pass / Fail</th>
+    </tr></thead>
+    <tbody>
+    {% for t in totals %}
+      <tr>
+        <td class="num"><span class="tag rank">{{ t.overall_rank }}</span></td>
+        <td class="mono">{{ t.roll_no }}</td>
+        <td><a class="link" href="{{ url_for('student_report', student_id=t.student_id) }}">{{ t.full_name }}</a></td>
+        <td class="num">{{ t.exams_taken }}</td>
+        <td class="num">{{ '%.0f'|format(t.total_marks or 0) }} / {{ t.total_max or 0 }}</td>
+        <td class="num">{{ '%.2f'|format(t.overall_pct) if t.overall_pct is not none else '—' }}{% if t.overall_pct is not none %}%{% endif %}</td>
+        <td class="num">{{ '%.2f'|format(t.gpa) if t.gpa is not none else '—' }}</td>
+        <td class="num">{{ t.passed }} / {{ t.failed }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="hint">Source: view <code>v_student_totals</code>. Ranks are recalculated on every page load, so they can never go stale.</div>
+</div>
+
+<h2>Exam-wise ranks</h2>
+<div class="card">
+  <table>
+    <thead><tr>
+      <th>Exam</th><th class="num">Rank</th><th>Roll no</th><th>Name</th>
+      <th class="num">Marks</th><th class="num">%</th><th>Grade</th><th>Status</th>
+    </tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr>
+        <td>{{ r.exam_name }}</td>
+        <td class="num"><span class="tag rank">{{ r.rank_no }}</span></td>
+        <td class="mono">{{ r.roll_no }}</td>
+        <td>{{ r.full_name }}</td>
+        <td class="num">{{ '%.1f'|format(r.marks_obtained) }} / {{ r.max_marks }}</td>
+        <td class="num">{{ '%.2f'|format(r.percentage) }}%</td>
+        <td><span class="tag g">{{ r.grade }}</span></td>
+        <td><span class="tag {{ 'pass' if r.result_status=='PASS' else 'fail' }}">{{ r.result_status }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

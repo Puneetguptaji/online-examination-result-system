@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="why">
+  <b>Where the intelligence lives:</b> this page only sends the marks you type and draws
+  the tables. The percentage, the grade, the pass/fail flag, the GPA and the rank are all
+  produced by <b>functions</b>, <b>triggers</b> and <b>stored procedures</b> inside MySQL.
+  Try <a class="link" href="{{ url_for('proof') }}">Prove the rules</a> to watch the database refuse bad data.
+</div>
+
+<div class="grid g4" style="margin-bottom:18px">
+  <div class="kpi"><div class="v">{{ kpi.students }}</div><div class="l">Students</div></div>
+  <div class="kpi"><div class="v">{{ kpi.exams }}</div><div class="l">Exams</div></div>
+  <div class="kpi"><div class="v">{{ kpi.results }}</div><div class="l">Results stored</div></div>
+  <div class="kpi"><div class="v">{{ kpi.avg_pct }}%</div><div class="l">Class average &middot; {{ kpi.pass_rate }}% pass</div></div>
+</div>
+
+<h2>Exams</h2>
+<div class="card">
+  <table>
+    <thead><tr>
+      <th>Exam</th><th>Subject</th><th class="num">Max</th><th class="num">Appeared</th>
+      <th class="num">Average</th><th class="num">Passed</th><th class="num">Failed</th><th></th>
+    </tr></thead>
+    <tbody>
+    {% for s in summary %}
+      <tr>
+        <td><a class="link" href="{{ url_for('exam_detail', exam_id=s.exam_id) }}">{{ s.exam_name }}</a></td>
+        <td>{{ s.subject }}</td>
+        <td class="num">{{ s.max_marks }}</td>
+        <td class="num">{{ s.students_appeared }}</td>
+        <td class="num">{{ '%.2f'|format(s.average_pct) if s.average_pct is not none else '—' }}{% if s.average_pct is not none %}%{% endif %}</td>
+        <td class="num">{{ s.passed }}</td>
+        <td class="num">{{ s.failed }}</td>
+        <td class="num"><a class="link" href="{{ url_for('exam_detail', exam_id=s.exam_id) }}">Open &rarr;</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <h3>Enter one student's marks</h3>
+    <form class="inline" method="post" action="{{ url_for('enter_marks') }}">
+      <div>
+        <label>Student</label>
+        <select name="student_id" required>
+          {% for s in students %}<option value="{{ s.student_id }}">{{ s.roll_no }} — {{ s.full_name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Exam</label>
+        <select name="exam_id" required>
+          {% for e in exams %}<option value="{{ e.exam_id }}">{{ e.exam_name }} ({{ e.max_marks }})</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Marks</label>
+        <input type="number" name="marks" step="0.5" min="0" style="width:96px" required>
+      </div>
+      <button type="submit">Generate result</button>
+    </form>
+    <div class="hint">Calls <code>sp_generate_result</code>. Enter more than the paper's maximum and the database refuses it.</div>
+  </div>
+
+  <div class="card">
+    <h3>Enter a whole class</h3>
+    <form method="post" action="{{ url_for('batch_enter') }}">
+      <label>Exam</label>
+      <select name="exam_id" required style="margin-bottom:9px">
+        {% for e in exams %}<option value="{{ e.exam_id }}">{{ e.exam_name }} ({{ e.max_marks }})</option>{% endfor %}
+      </select>
+      <label>Marks as <code>roll_no:marks</code>, separated by commas</label>
+      <textarea name="batch" placeholder="26MCI10246:68, 26MCI10247:71, 26MCI10252:52"></textarea>
+      <button type="submit" style="margin-top:9px">Run batch</button>
+    </form>
+    <div class="hint">Calls <code>sp_generate_exam_results</code>, which reads the list and skips duplicates.</div>
+  </div>
+</div>
+
+<h2>Students <span class="hint" style="font-weight:400">&middot; whole-course totals, GPA and overall rank</span></h2>
+<div class="card">
+  <div class="toolbar">
+    <form class="inline" method="get" action="{{ url_for('dashboard') }}">
+      <input type="search" name="q" value="{{ q }}" placeholder="Search roll number or name" style="width:260px">
+      <button type="submit" class="ghost">Search</button>
+      {% if q %}<a class="link" href="{{ url_for('dashboard') }}" style="font-size:13px">Clear</a>{% endif %}
+    </form>
+    <div class="spacer"></div>
+    <a class="link" href="{{ url_for('export_students') }}" style="font-size:13px">Download CSV</a>
+  </div>
+  <table>
+    <thead><tr>
+      <th class="num">Rank</th><th>Roll no</th><th>Name</th>
+      <th class="num">Exams</th><th class="num">Total</th><th class="num">Overall</th>
+      <th class="num">GPA</th><th></th>
+    </tr></thead>
+    <tbody>
+    {% for t in totals %}
+      <tr>
+        <td class="num"><span class="tag rank">{{ t.overall_rank }}</span></td>
+        <td class="mono">{{ t.roll_no }}</td>
+        <td><a class="link" href="{{ url_for('student_report', student_id=t.student_id) }}">{{ t.full_name }}</a></td>
+        <td class="num">{{ t.exams_taken }}</td>
+        <td class="num">{{ '%.0f'|format(t.total_marks or 0) }} / {{ t.total_max or 0 }}</td>
+        <td class="num">{{ '%.2f'|format(t.overall_pct) if t.overall_pct is not none else '—' }}{% if t.overall_pct is not none %}%{% endif %}</td>
+        <td class="num">{{ '%.2f'|format(t.gpa) if t.gpa is not none else '—' }}</td>
+        <td class="num"><a class="link" href="{{ url_for('transcript', student_id=t.student_id) }}">Mark sheet</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>Latest results</h2>
+<div class="card">
+  <table>
+    <thead><tr>
+      <th>Roll no</th><th>Name</th><th>Exam</th><th class="num">Marks</th>
+      <th class="num">%</th><th>Grade</th><th>Status</th><th class="num">Rank</th><th></th>
+    </tr></thead>
+    <tbody>
+    {% for r in recent %}
+      <tr>
+        <td class="mono">{{ r.roll_no }}</td>
+        <td>{{ r.full_name }}</td>
+        <td>{{ r.exam_name }}</td>
+        <td class="num">{{ '%.1f'|format(r.marks_obtained) }} / {{ r.max_marks }}</td>
+        <td class="num">{{ '%.2f'|format(r.percentage) }}%</td>
+        <td><span class="tag g">{{ r.grade }}</span></td>
+        <td><span class="tag {{ 'pass' if r.result_status=='PASS' else 'fail' }}">{{ r.result_status }}</span></td>
+        <td class="num">{{ r.rank_no }}</td>
+        <td class="num"><a class="link" href="{{ url_for('edit_result', result_id=r.result_id) }}" style="font-size:12.5px">Edit</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="toolbar" style="margin:12px 0 0">
+    <a class="link" href="{{ url_for('export_all') }}" style="font-size:13px">Download all results as CSV</a>
+    <div class="spacer"></div>
+    <form method="post" action="{{ url_for('reset_demo') }}"
+          onsubmit="return confirm('Restore the original demo data? Any marks you entered will be removed.');">
+      <button class="danger sm" type="submit">Reset demo data</button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

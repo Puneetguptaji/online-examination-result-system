@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="card" style="text-align:center;padding:48px 24px">
+  <div style="font-size:44px;font-weight:700;color:var(--accent);letter-spacing:-.03em">{{ code }}</div>
+  <h2 style="margin:8px 0 6px">{{ title }}</h2>
+  <div class="hint" style="margin-bottom:18px">{{ detail }}</div>
+  <a href="{{ url_for('dashboard') }}"><button type="button">Go to the dashboard</button></a>
+</div>
+{% endblock %}

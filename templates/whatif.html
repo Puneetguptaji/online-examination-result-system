@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="why">
+  <b>Ask the database "what would this mark get?" without saving anything.</b>
+  The form calls <code>fn_calc_percentage</code>, <code>fn_get_grade</code> and
+  <code>fn_grade_points</code> directly. No row is inserted, so you can experiment freely.
+</div>
+
+<div class="card">
+  <form class="inline" method="get" action="{{ url_for('whatif') }}">
+    <div>
+      <label>Exam</label>
+      <select name="exam_id" required>
+        {% for e in exams %}
+          <option value="{{ e.exam_id }}" {{ 'selected' if exam_id == e.exam_id }}>
+            {{ e.exam_name }} (max {{ e.max_marks }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Marks</label>
+      <input type="number" name="marks" step="0.5" min="0" value="{{ marks if marks is not none else '' }}"
+             style="width:120px" required>
+    </div>
+    <button type="submit">What would I get?</button>
+  </form>
+</div>
+
+{% if result %}
+<div class="grid g4">
+  <div class="kpi"><div class="v">{{ '%.2f'|format(result.pct) }}%</div><div class="l">Percentage</div></div>
+  <div class="kpi"><div class="v">{{ result.grade }}</div><div class="l">Grade</div></div>
+  <div class="kpi"><div class="v">{{ '%.1f'|format(result.points) }}</div><div class="l">Grade points</div></div>
+  <div class="kpi">
+    <div class="v" style="color:{{ '#15803d' if result.status=='PASS' else '#b91c1c' }}">{{ result.status }}</div>
+    <div class="l">{{ '%.1f'|format(result.marks) }} out of {{ result.exam.max_marks }}</div>
+  </div>
+</div>
+
+{% if result.marks_typed > result.exam.max_marks %}
+<div class="flash error" style="margin-top:16px">
+  Note: {{ '%.1f'|format(result.marks) }} is above the paper maximum of {{ result.exam.max_marks }}.
+  The calculator still answers, because it is only calling a function — but
+  <a class="link" href="{{ url_for('proof') }}">the trigger would refuse to store this row</a>.
+</div>
+{% endif %}
+
+<div class="hint" style="margin-top:14px">
+  SQL used:
+  <code>SELECT fn_calc_percentage({{ result.marks }}, {{ result.exam.max_marks }}),
+  fn_get_grade(fn_calc_percentage({{ result.marks }}, {{ result.exam.max_marks }}))</code>
+</div>
+{% endif %}
+
+{% endblock %}

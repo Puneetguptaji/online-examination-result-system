@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block body %}
+<h2>Prove the rules</h2>
+<div class="why">
+  Each line below ran a real SQL statement against the live database, from the web server,
+  <b>bypassing every interface check</b>. Green means the database allowed it. Red means the
+  database refused it and said why.
+</div>
+
+<div class="card">
+<table>
+  <thead><tr><th>Attempt</th><th>Result</th><th>What the database said</th></tr></thead>
+  <tbody>
+  {% for label, verdict, note in results %}
+    <tr>
+      <td>{{ label }}</td>
+      <td><span class="tag {{ 'ok' if verdict=='ALLOWED' else 'no' }}">{{ verdict }}</span></td>
+      <td class="mono" style="color:{{ '#15803d' if verdict=='ALLOWED' else '#b91c1c' }}">{{ note or '—' }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div class="hint">Refusals come from <code>trg_results_bi</code> and <code>trg_results_bu</code> (marks out of
+range), from the foreign keys, and from the unique constraint that stops a student being entered twice
+in one exam. Nothing here is simulated &mdash; these are the database's own error messages.</div>
+</div>
+
+<h2>The trigger did the arithmetic</h2>
+<div class="card">
+  <div class="hint" style="margin-bottom:10px">These rows were inserted with <b>only</b> a marks value.
+  Percentage, grade and pass/fail were filled in by <code>trg_results_bi</code>.</div>
+  <table>
+    <thead><tr><th class="num">Marks entered</th><th class="num">Percentage</th><th>Grade</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for t in trig %}
+      <tr>
+        <td class="num">{{ t.marks_obtained }}</td>
+        <td class="num">{{ '%.2f'|format(t.percentage) }}%</td>
+        <td><b>{{ t.grade }}</b></td>
+        <td><span class="tag {{ 'pass' if t.result_status=='PASS' else 'fail' }}">{{ t.result_status }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>The functions, called directly</h2>
+<div class="card">
+  <table>
+    <thead><tr><th>Function call</th><th>Returns</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">fn_calc_percentage(87, 100)</td><td><b>{{ fn.pct_87 }}%</b></td></tr>
+      <tr><td class="mono">fn_get_grade(87.00)</td><td><b>{{ fn.grade_87 }}</b></td></tr>
+      <tr><td class="mono">fn_get_grade(33.00)</td><td><b>{{ fn.grade_33 }}</b></td></tr>
+      <tr><td class="mono">fn_grade_points(fn_get_grade(87.00))</td><td><b>{{ fn.points_87 }}</b></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>Audit trail written by triggers</h2>
+<div class="card">
+  <table>
+    <thead><tr><th>Result</th><th>Action</th><th class="num">Old</th><th class="num">New</th><th>By</th><th>When</th></tr></thead>
+    <tbody>
+    {% for a in audit %}
+      <tr>
+        <td class="mono">#{{ a.result_id }}</td>
+        <td><span class="tag rank">{{ a.action }}</span></td>
+        <td class="num">{{ a.old_marks if a.old_marks is not none else '—' }}</td>
+        <td class="num">{{ a.new_marks if a.new_marks is not none else '—' }}</td>
+        <td>{{ a.changed_by }}</td>
+        <td class="mono">{{ a.changed_at }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

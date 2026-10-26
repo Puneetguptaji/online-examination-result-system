@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="toolbar">
+  <div>
+    <h2 style="margin:0">Correct a result</h2>
+    <div class="hint" style="margin-top:2px">{{ row.roll_no }} — {{ row.full_name }} &middot; {{ row.exam_name }}</div>
+  </div>
+  <div class="spacer"></div>
+  <a class="link" href="{{ url_for('exam_detail', exam_id=row.exam_id) }}" style="font-size:13px">&larr; Back to exam</a>
+</div>
+
+<div class="why">
+  <b>You are not editing the percentage or the grade — only the marks.</b>
+  When you save, <code>sp_update_marks</code> changes the marks and the trigger
+  <code>trg_results_bu</code> recalculates the percentage, the grade and the pass/fail flag.
+  <code>trg_results_au</code> then writes the before and after values into the audit trail.
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <h3>Current values</h3>
+    <table>
+      <tr><td>Marks</td><td class="num"><b>{{ '%.1f'|format(row.marks_obtained) }} / {{ row.max_marks }}</b></td></tr>
+      <tr><td>Percentage</td><td class="num">{{ '%.2f'|format(row.percentage) }}%</td></tr>
+      <tr><td>Grade</td><td class="num"><span class="tag g">{{ row.grade }}</span></td></tr>
+      <tr><td>Status</td><td class="num"><span class="tag {{ 'pass' if row.result_status=='PASS' else 'fail' }}">{{ row.result_status }}</span></td></tr>
+      <tr><td>Rank in exam</td><td class="num">{{ row.rank_no }}</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Change the marks</h3>
+    <form method="post">
+      <label>New marks (0 to {{ row.max_marks }})</label>
+      <input type="number" name="marks" step="0.5" min="0" max="{{ row.max_marks }}"
+             value="{{ '%.1f'|format(row.marks_obtained) }}" style="width:130px" required>
+      <div style="margin-top:12px"><button type="submit">Save and recalculate</button></div>
+    </form>
+    <div class="hint">Enter more than {{ row.max_marks }} and the procedure raises an error instead of saving.</div>
+  </div>
+</div>
+
+<h2>History of this result</h2>
+<div class="card">
+  <table>
+    <thead><tr><th class="num">#</th><th>Action</th><th class="num">Old</th><th class="num">New</th><th>By</th><th>When</th></tr></thead>
+    <tbody>
+    {% for a in trail %}
+      <tr>
+        <td class="num">{{ a.audit_id }}</td>
+        <td><span class="tag {{ 'ins' if a.action=='INSERT' else ('upd' if a.action=='UPDATE' else 'del') }}">{{ a.action }}</span></td>
+        <td class="num">{{ '%.1f'|format(a.old_marks) if a.old_marks is not none else '—' }}</td>
+        <td class="num">{{ '%.1f'|format(a.new_marks) if a.new_marks is not none else '—' }}</td>
+        <td>{{ a.changed_by }}</td>
+        <td class="hint" style="margin:0">{{ a.changed_at }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6" class="hint" style="padding:16px">No history yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

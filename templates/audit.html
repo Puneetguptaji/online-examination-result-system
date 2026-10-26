@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="why">
+  <b>Every change is recorded by a trigger, not by the application.</b>
+  <code>trg_results_ai</code>, <code>trg_results_au</code> and <code>trg_results_ad</code>
+  write a row into <code>result_audit</code> on insert, update and delete. If the website
+  crashed mid-save, the trail would still be there.
+</div>
+
+<div class="grid g3" style="margin-bottom:18px">
+  {% for c in counts %}
+    <div class="kpi"><div class="v">{{ c.n }}</div><div class="l">{{ c.action }} operations recorded</div></div>
+  {% endfor %}
+</div>
+
+<h2>Audit trail</h2>
+<div class="card">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th class="num">Result</th><th>Action</th><th class="num">Old marks</th>
+      <th class="num">New marks</th><th>By</th><th>When</th>
+    </tr></thead>
+    <tbody>
+    {% for a in trail %}
+      <tr>
+        <td class="num">{{ a.audit_id }}</td>
+        <td class="num">#{{ a.result_id }}</td>
+        <td><span class="tag {{ 'ins' if a.action=='INSERT' else ('upd' if a.action=='UPDATE' else 'del') }}">{{ a.action }}</span></td>
+        <td class="num">{{ '%.1f'|format(a.old_marks) if a.old_marks is not none else '—' }}</td>
+        <td class="num">{{ '%.1f'|format(a.new_marks) if a.new_marks is not none else '—' }}</td>
+        <td>{{ a.changed_by }}</td>
+        <td class="hint" style="margin:0">{{ a.changed_at }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="7" class="hint" style="padding:16px">No changes recorded yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

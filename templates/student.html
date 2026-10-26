@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="toolbar">
+  <div>
+    <h2 style="margin:0">{{ student.full_name }}</h2>
+    <div class="hint" style="margin-top:2px">
+      {{ student.roll_no }} &middot; {{ student.program }} &middot; semester {{ student.semester }} &middot; {{ student.email }}
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <a class="link" href="{{ url_for('transcript', student_id=student.student_id) }}" style="font-size:13px">Printable mark sheet</a>
+  <a class="link" href="{{ url_for('dashboard') }}" style="font-size:13px">&larr; Dashboard</a>
+</div>
+
+{% if total %}
+<div class="grid g4" style="margin-bottom:8px">
+  <div class="kpi"><div class="v">{{ total.exams_taken }}</div><div class="l">Exams taken</div></div>
+  <div class="kpi"><div class="v">{{ '%.2f'|format(total.overall_pct) if total.overall_pct is not none else '—' }}{% if total.overall_pct is not none %}%{% endif %}</div><div class="l">Overall {{ '%.0f'|format(total.total_marks or 0) }} / {{ total.total_max or 0 }}</div></div>
+  <div class="kpi"><div class="v">{{ '%.2f'|format(total.gpa) if total.gpa is not none else '—' }}</div><div class="l">GPA (10-point scale)</div></div>
+  <div class="kpi"><div class="v">#{{ total.overall_rank }}</div><div class="l">Overall rank in class</div></div>
+</div>
+<div class="hint" style="margin-bottom:16px">
+  Comes from the view <code>v_student_totals</code>, which sums the marks, divides by the
+  total maximum, and averages <code>fn_grade_points(grade)</code> to get the GPA.
+</div>
+{% endif %}
+
+<h2>Exam by exam</h2>
+<div class="card">
+  <table>
+    <thead><tr>
+      <th>Exam</th><th>Subject</th><th class="num">Marks</th><th class="num">%</th>
+      <th>Grade</th><th>Status</th><th class="num">Rank</th>
+    </tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr>
+        <td>{{ r.exam_name }}</td>
+        <td>{{ r.subject }}</td>
+        <td class="num">{{ '%.1f'|format(r.marks_obtained) }} / {{ r.max_marks }}</td>
+        <td class="num">{{ '%.2f'|format(r.percentage) }}%</td>
+        <td><span class="tag g">{{ r.grade }}</span></td>
+        <td><span class="tag {{ 'pass' if r.result_status=='PASS' else 'fail' }}">{{ r.result_status }}</span></td>
+        <td class="num">{{ r.rank_no }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="7" class="hint" style="padding:16px">This student has no results yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="hint">This table is the result set returned by <code>sp_student_report</code>.</div>
+</div>
+
+{% endblock %}

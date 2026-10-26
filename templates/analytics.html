@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="why">
+  <b>Everything on this page is a SQL aggregate.</b> The averages, medians, standard
+  deviations and pass rates are computed by <code>sp_class_statistics</code>, the grade
+  split by <code>v_grade_distribution</code>, and the subject roll-up by
+  <code>v_subject_summary</code>. Python only draws the bars.
+</div>
+
+<div class="grid g4" style="margin-bottom:18px">
+  <div class="kpi"><div class="v">{{ grand.results }}</div><div class="l">Results analysed</div></div>
+  <div class="kpi"><div class="v">{{ grand.avg_pct }}%</div><div class="l">Average &middot; SD {{ grand.std_dev }}</div></div>
+  <div class="kpi"><div class="v">{{ grand.pass_rate }}%</div><div class="l">Pass rate</div></div>
+  <div class="kpi"><div class="v">{{ grand.best }}%</div><div class="l">Best score &middot; worst {{ grand.worst }}%</div></div>
+</div>
+
+<h2>Grade distribution (all exams)</h2>
+<div class="card">
+  {% set total = grades | sum(attribute='n') %}
+  {% if total %}
+  <div class="chart">
+    {% for g in grades %}
+      <div class="row">
+        <div class="lbl">{{ g.grade }}</div>
+        <div class="track"><div class="fill" style="width:{{ (100 * g.n / total) | round(1) }}%"></div></div>
+        <div class="n">{{ g.n }}</div>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="hint">Read from view <code>v_grade_distribution</code>. Each bar is one letter grade.</div>
+  {% else %}<div class="hint">No results yet.</div>{% endif %}
+</div>
+
+<h2>Exam statistics</h2>
+<div class="card">
+  <table>
+    <thead><tr>
+      <th>Exam</th><th class="num">Appeared</th><th class="num">Average</th><th class="num">Median</th>
+      <th class="num">Std dev</th><th class="num">High</th><th class="num">Low</th>
+      <th class="num">Pass rate</th><th>Topper</th>
+    </tr></thead>
+    <tbody>
+    {% for s in stats %}
+      <tr>
+        <td><a class="link" href="{{ url_for('exam_detail', exam_id=s.exam_id) }}">{{ s.exam_name }}</a></td>
+        <td class="num">{{ s.appeared }}</td>
+        <td class="num">{{ s.average_pct if s.average_pct is not none else '—' }}</td>
+        <td class="num">{{ s.median_pct if s.median_pct is not none else '—' }}</td>
+        <td class="num">{{ s.std_dev if s.std_dev is not none else '—' }}</td>
+        <td class="num">{{ s.highest_pct if s.highest_pct is not none else '—' }}</td>
+        <td class="num">{{ s.lowest_pct if s.lowest_pct is not none else '—' }}</td>
+        <td class="num">{{ s.pass_rate if s.pass_rate is not none else '—' }}%</td>
+        <td class="mono">{{ s.topper_roll }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="hint">The median is computed with an ordered <code>LIMIT 1 OFFSET n</code> inside the procedure, because MySQL has no built-in median.</div>
+</div>
+
+<h2>By subject</h2>
+<div class="card">
+  <table>
+    <thead><tr>
+      <th>Subject</th><th class="num">Exams</th><th class="num">Results</th>
+      <th class="num">Average</th><th class="num">Best</th><th class="num">Pass rate</th>
+    </tr></thead>
+    <tbody>
+    {% for s in subjects %}
+      <tr>
+        <td>{{ s.subject }}</td>
+        <td class="num">{{ s.exams }}</td>
+        <td class="num">{{ s.results_entered }}</td>
+        <td class="num">{{ s.average_pct if s.average_pct is not none else '—' }}{% if s.average_pct is not none %}%{% endif %}</td>
+        <td class="num">{{ s.best_pct if s.best_pct is not none else '—' }}{% if s.best_pct is not none %}%{% endif %}</td>
+        <td class="num">{{ s.pass_rate if s.pass_rate is not none else '—' }}{% if s.pass_rate is not none %}%{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="hint">Source: view <code>v_subject_summary</code>.</div>
+</div>
+
+<h2>Class leaderboard by GPA</h2>
+<div class="card">
+  <table>
+    <thead><tr>
+      <th class="num">Rank</th><th>Roll no</th><th>Name</th><th class="num">Overall %</th>
+      <th class="num">GPA</th><th></th>
+    </tr></thead>
+    <tbody>
+    {% for t in totals %}
+      <tr>
+        <td class="num"><span class="tag rank">{{ t.overall_rank }}</span></td>
+        <td class="mono">{{ t.roll_no }}</td>
+        <td><a class="link" href="{{ url_for('student_report', student_id=t.student_id) }}">{{ t.full_name }}</a></td>
+        <td class="num">{{ '%.2f'|format(t.overall_pct) if t.overall_pct is not none else '—' }}{% if t.overall_pct is not none %}%{% endif %}</td>
+        <td class="num">{{ '%.2f'|format(t.gpa) if t.gpa is not none else '—' }}</td>
+        <td class="num"><a class="link" href="{{ url_for('transcript', student_id=t.student_id) }}" style="font-size:12.5px">Mark sheet</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

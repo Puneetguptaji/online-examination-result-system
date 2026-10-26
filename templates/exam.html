@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="toolbar">
+  <div>
+    <h2 style="margin:0">{{ exam.exam_name }}</h2>
+    <div class="hint" style="margin-top:2px">{{ exam.subject }} &middot; maximum {{ exam.max_marks }} marks &middot; {{ exam.exam_type }} &middot; {{ exam.exam_date }}</div>
+  </div>
+  <div class="spacer"></div>
+  <a class="link" href="{{ url_for('export_exam', exam_id=exam.exam_id) }}" style="font-size:13px">Download CSV</a>
+  <a class="link" href="{{ url_for('dashboard') }}" style="font-size:13px">&larr; Dashboard</a>
+</div>
+
+{% if stats and stats.appeared %}
+<div class="grid g4" style="margin-bottom:8px">
+  <div class="kpi"><div class="v">{{ stats.appeared }}</div><div class="l">Appeared</div></div>
+  <div class="kpi"><div class="v">{{ stats.average_pct }}%</div><div class="l">Average &middot; median {{ stats.median_pct }}%</div></div>
+  <div class="kpi"><div class="v">{{ stats.pass_rate }}%</div><div class="l">Pass rate &middot; {{ stats.passed }} pass / {{ stats.failed }} fail</div></div>
+  <div class="kpi"><div class="v">{{ stats.highest_pct }}%</div><div class="l">Highest &middot; lowest {{ stats.lowest_pct }}% &middot; topper {{ stats.topper_roll }}</div></div>
+</div>
+<div class="hint" style="margin-bottom:16px">
+  These figures come from <code>sp_class_statistics</code>, which computes the median and the
+  standard deviation (<code>{{ stats.std_dev }}</code>) inside the database.
+</div>
+{% endif %}
+
+<h2>Merit list</h2>
+<div class="card">
+  <table>
+    <thead><tr>
+      <th class="num">Rank</th><th>Roll no</th><th>Name</th><th class="num">Marks</th>
+      <th class="num">%</th><th>Grade</th><th>Status</th><th></th>
+    </tr></thead>
+    <tbody>
+    {% for m in merit %}
+      <tr>
+        <td class="num"><span class="tag rank">{{ m.rank_no }}</span></td>
+        <td class="mono">{{ m.roll_no }}</td>
+        <td><a class="link" href="{{ url_for('student_report', student_id=m.student_id) }}">{{ m.full_name }}</a></td>
+        <td class="num">{{ '%.1f'|format(m.marks_obtained) }} / {{ m.max_marks }}</td>
+        <td class="num">{{ '%.2f'|format(m.percentage) }}%</td>
+        <td><span class="tag g">{{ m.grade }}</span></td>
+        <td><span class="tag {{ 'pass' if m.result_status=='PASS' else 'fail' }}">{{ m.result_status }}</span></td>
+        <td>
+          <div class="rowbtn">
+            <a class="link" href="{{ url_for('edit_result', result_id=m.result_id) }}" style="font-size:12.5px">Edit</a>
+            <form method="post" action="{{ url_for('delete_result', result_id=m.result_id) }}"
+                  onsubmit="return confirm('Delete this result? The delete is recorded in the audit trail.');">
+              <button class="danger sm" type="submit">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="8" class="hint" style="padding:16px">No results entered for this exam yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="hint">Ranks come from <code>RANK() OVER (ORDER BY percentage DESC)</code> inside <code>v_result_summary</code>.</div>
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <h3>Add a student's marks</h3>
+    <form class="inline" method="post" action="{{ url_for('enter_marks') }}">
+      <input type="hidden" name="exam_id" value="{{ exam.exam_id }}">
+      <div>
+        <label>Student</label>
+        <select name="student_id" required>
+          {% for s in students %}
+            <option value="{{ s.student_id }}" {{ 'disabled' if s.student_id in entered }}>
+              {{ s.roll_no }} — {{ s.full_name }}{{ ' (already entered)' if s.student_id in entered }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Marks (max {{ exam.max_marks }})</label>
+        <input type="number" name="marks" step="0.5" min="0" max="{{ exam.max_marks }}" style="width:110px" required>
+      </div>
+      <button type="submit">Generate result</button>
+    </form>
+    <div class="hint">Try a mark above {{ exam.max_marks }} — the trigger refuses it and says why.</div>
+  </div>
+
+  <div class="card">
+    <h3>Grade split</h3>
+    {% set total = dist | sum(attribute='n') %}
+    {% if total %}
+      <div class="chart">
+        {% for d in dist %}
+          <div class="row">
+            <div class="lbl">{{ d.grade }}</div>
+            <div class="track"><div class="fill" style="width:{{ (100 * d.n / total) | round(1) }}%"></div></div>
+            <div class="n">{{ d.n }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="hint">No results yet.</div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
